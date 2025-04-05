@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>URL Encrypt Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        .container { max-width: 800px; margin: 50px auto; padding: 20px }
+        input, button { padding: 10px; margin: 5px }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>URL 加密工具</h2>
+        <input type="text" id="url" placeholder="输入目标网址（含协议）" style="width: 300px">
+        <button onclick="generate()">生成加密链接</button>
+        
+        <div id="result" style="margin-top: 20px; display: none">
+            <p>密钥：<code id="key"></code></p>
+            <p>加密链接：<code id="encrypted"></code></p>
+            <button onclick="copyLink()">复制链接</button>
+        </div>
+    </div>
+
+    <script>
+        // 生成随机密钥（32字节）
+        function generateKey() {
+            return CryptoJS.lib.WordArray.random(32).toString();
+        }
+
+        // AES加密函数
+        function encryptUrl(url, key) {
+            return CryptoJS.AES.encrypt(url, key).toString();
+        }
+
+        function generate() {
+            const url = document.getElementById('url').value;
+            if (!url) return alert('请输入网址');
+            
+            // 生成密钥并加密
+            const key = generateKey();
+            const encrypted = encryptUrl(url, key);
+            
+            // 构建跳转链接
+            const finalLink = `${window.location.origin}/redirect.html?code=${encodeURIComponent(encrypted)}&key=${encodeURIComponent(key)}`;
+            
+            // 显示结果
+            document.getElementById('key').textContent = key;
+            document.getElementById('encrypted').textContent = finalLink;
+            document.getElementById('result').style.display = 'block';
+        }
+
+        function copyLink() {
+            const link = document.getElementById('encrypted').textContent;
+            navigator.clipboard.writeText(link);
+            alert('已复制到剪贴板');
+        }
+    </script>
+</body>
+</html>
