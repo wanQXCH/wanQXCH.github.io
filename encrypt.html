@@ -41,7 +41,7 @@
             const encrypted = encryptUrl(url, key);
             
             // 构建跳转链接
-            const finalLink = `https://wanqxch.github.io/jump?code=/redirect.html?code=${encodeURIComponent(encrypted)}&key=${encodeURIComponent(key)}`;
+            const finalLink = `https://wanqxch.github.io/jump?code=${encodeURIComponent(encrypted)}&key=${encodeURIComponent(key)}`;
             
             // 显示结果
             document.getElementById('key').textContent = key;
