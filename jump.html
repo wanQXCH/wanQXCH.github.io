@@ -1,40 +1,54 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Redirecting...</title>
+    <title>跳转中...</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px }
+        .loader { width: 40px; height: 40px; margin: 20px auto }
+    </style>
+</head>
+<body>
+    <div class="loader"></div>
+    <p>正在安全验证，请稍候...</p>
+    <noscript>请启用JavaScript以完成跳转</noscript>
+
     <script>
-        (function() {
+        document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const encrypted = urlParams.get('code');
             const key = urlParams.get('key');
 
+            function showError(msg) {
+                document.body.innerHTML = `<h1 style="color:red">${msg}</h1>`;
+            }
+
             if (!encrypted || !key) {
-                document.body.innerHTML = '<h1>缺少必要参数</h1>';
-                return;
+                return showError('缺少必要参数');
             }
 
             try {
-                // AES解密
                 const decrypted = CryptoJS.AES.decrypt(
                     decodeURIComponent(encrypted),
                     decodeURIComponent(key)
                 ).toString(CryptoJS.enc.Utf8);
 
-                // 安全校验
-                if (!decrypted || !/^https?:\/\//i.test(decrypted)) {
-                    throw new Error('无效的URL');
+                if (!decrypted) throw new Error('解密失败');
+                if (!/^https?:\/\//i.test(decrypted)) {
+                    throw new Error('非法的URL协议');
                 }
 
-                // 执行跳转
-                window.location.replace(decrypted);
+                // 移动端兼容跳转
+                setTimeout(() => {
+                    window.location.replace(decrypted);
+                }, 300);  // 添加短暂延迟确保DOM加载
+
             } catch (e) {
-                document.body.innerHTML = '<h1>解密失败或链接无效</h1>';
+                console.error('跳转失败:', e);
+                showError('链接已失效或安全验证未通过');
             }
-        })();
+        });
     </script>
-</head>
-<body>
-    <noscript>请启用JavaScript以完成跳转</noscript>
 </body>
 </html>
