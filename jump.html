@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script>
+        // 预定义的哈希-URL映射表（需提前生成）
+        const hashMap = {
+            "e80b5017098950fc58aad83c8c14978e": "https://www.baidu.com",  // MD5("baidu")
+            "900150983cd24fb0d6963f7d28e17f72": "https://www.google.com"  // MD5("abc")
+        };
+
+        (function() {
+            // 从URL获取哈希参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const hash = urlParams.get('code');
+            
+            if (hash && hashMap[hash]) {
+                window.location.replace(hashMap[hash]);
+            } else {
+                document.body.innerHTML = `
+                    <h1>无效链接</h1>
+                    <p>合法链接示例：</p>
+                    <code>
+                        ${location.origin}?code=e80b5017098950fc58aad83c8c14978e
+                    </code>
+                `;
+            }
+        })();
+    </script>
+</head>
+<body></body>
+</html>
