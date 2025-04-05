@@ -1,31 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <title>Redirecting...</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script>
-        // 预定义的哈希-URL映射表（需提前生成）
-        const hashMap = {
-            "e80b5017098950fc58aad83c8c14978e": "https://www.baidu.com",  // MD5("baidu")
-            "900150983cd24fb0d6963f7d28e17f72": "https://www.google.com"  // MD5("abc")
-        };
-
         (function() {
-            // 从URL获取哈希参数
             const urlParams = new URLSearchParams(window.location.search);
-            const hash = urlParams.get('code');
-            
-            if (hash && hashMap[hash]) {
-                window.location.replace(hashMap[hash]);
-            } else {
-                document.body.innerHTML = `
-                    <h1>无效链接</h1>
-                    <p>合法链接示例：</p>
-                    <code>
-                        ${location.origin}?code=e80b5017098950fc58aad83c8c14978e
-                    </code>
-                `;
+            const encrypted = urlParams.get('code');
+            const key = urlParams.get('key');
+
+            if (!encrypted || !key) {
+                document.body.innerHTML = '<h1>缺少必要参数</h1>';
+                return;
+            }
+
+            try {
+                // AES解密
+                const decrypted = CryptoJS.AES.decrypt(
+                    decodeURIComponent(encrypted),
+                    decodeURIComponent(key)
+                ).toString(CryptoJS.enc.Utf8);
+
+                // 安全校验
+                if (!decrypted || !/^https?:\/\//i.test(decrypted)) {
+                    throw new Error('无效的URL');
+                }
+
+                // 执行跳转
+                window.location.replace(decrypted);
+            } catch (e) {
+                document.body.innerHTML = '<h1>解密失败或链接无效</h1>';
             }
         })();
     </script>
 </head>
-<body></body>
+<body>
+    <noscript>请启用JavaScript以完成跳转</noscript>
+</body>
 </html>
