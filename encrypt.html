@@ -48,7 +48,7 @@
             const key = generateKey();
             const encrypted = encryptUrl(url, key);
             
-            const finalLink = `${BASE_DOMAIN}/redirect.html?code=${encodeURIComponent(encrypted)}&key=${encodeURIComponent(key)}`;
+            const finalLink = `${BASE_DOMAIN}?code=${encodeURIComponent(encrypted)}&key=${encodeURIComponent(key)}`;
             
             document.getElementById('key').textContent = key;
             document.getElementById('encrypted').textContent = finalLink;
