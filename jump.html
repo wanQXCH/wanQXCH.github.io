@@ -5,50 +5,56 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px }
-        .loader { width: 40px; height: 40px; margin: 20px auto }
+        body { text-align: center; padding: 50px }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; 
+                 border-radius: 50%; width: 40px; height: 40px;
+                 animation: spin 1s linear infinite; margin: 20px auto }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div class="loader"></div>
-    <p>正在安全验证，请稍候...</p>
-    <noscript>请启用JavaScript以完成跳转</noscript>
+    <p>安全验证进行中...</p>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const encrypted = urlParams.get('code');
-            const key = urlParams.get('key');
-
-            function showError(msg) {
-                document.body.innerHTML = `<h1 style="color:red">${msg}</h1>`;
-            }
-
-            if (!encrypted || !key) {
-                return showError('缺少必要参数');
+        (function() {
+            // Base64URL解码
+            function base64URLDecode(str) {
+                str = str.replace(/-/g, '+').replace(/_/g, '/');
+                while (str.length % 4) str += '=';
+                return str;
             }
 
             try {
+                const params = new URLSearchParams(location.search);
+                const cipher = params.get('c');
+                const secret = params.get('s');
+
+                if (!cipher || !secret) throw new Error('参数不完整');
+
+                // 解码密钥和加密数据
+                const key = CryptoJS.enc.Base64.parse(base64URLDecode(secret));
+                const combined = CryptoJS.enc.Base64.parse(base64URLDecode(cipher));
+                
+                // 分离IV和密文
+                const iv = CryptoJS.lib.WordArray.create(combined.words.slice(0, 4));
+                const ciphertext = CryptoJS.lib.WordArray.create(combined.words.slice(4));
+
+                // 解密操作
                 const decrypted = CryptoJS.AES.decrypt(
-                    decodeURIComponent(encrypted),
-                    decodeURIComponent(key)
-                ).toString(CryptoJS.enc.Utf8);
+                    { ciphertext: ciphertext },
+                    key,
+                    { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }
+                );
 
-                if (!decrypted) throw new Error('解密失败');
-                if (!/^https?:\/\//i.test(decrypted)) {
-                    throw new Error('非法的URL协议');
-                }
+                const url = decrypted.toString(CryptoJS.enc.Utf8);
+                if (!/^https?:\/\//i.test(url)) throw new Error('非法地址');
 
-                // 移动端兼容跳转
-                setTimeout(() => {
-                    window.location.replace(decrypted);
-                }, 300);  // 添加短暂延迟确保DOM加载
-
-            } catch (e) {
-                console.error('跳转失败:', e);
-                showError('链接已失效或安全验证未通过');
+                setTimeout(() => window.location.replace(url), 300);
+            } catch(e) {
+                document.body.innerHTML = `<h1 style="color:red">跳转失败：${e.message}</h1>`;
             }
-        });
+        })();
     </script>
 </body>
 </html>
